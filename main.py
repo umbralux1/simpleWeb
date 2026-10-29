@@ -1,9 +1,51 @@
 import uvicorn
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, EmailStr, ConfigDict
 
 
 app = FastAPI()
+
+data_without_age = {
+    'email': 'sefsfesfsefsef@mail.ru',
+    'bio': 'bla bla'
+}
+
+data = {
+    'email': 'sfese@mail.ru',
+    'age': 30,
+    'bio': 'sefefsees',
+    # 'birthday': '1990-01-01',
+    # 'gender': 'male',
+}
+
+
+class UserSchema(BaseModel):
+    email: EmailStr
+    bio: str | None = Field(max_length=10)
+
+    model_config = ConfigDict(extra='forbid')
+
+
+users = []
+
+
+@app.post('/users', tags=['Пользователи 💁‍'], summary='Добавить нового пользователя')
+def add_user(user: UserSchema):
+    users.append(user)
+    return {'success': True, 'message': 'Пользователь успешно добавлен'}
+
+
+@app.get('/users', tags=['Пользователи 💁‍'], summary='Получить всех пользователей')
+def get_user() -> list[UserSchema]:
+    return users
+
+
+class UserAgeSchema(UserSchema):
+    age: int = Field(ge=0, le=130)
+
+
+print(repr(UserSchema(**data_without_age)))
+print(repr(UserAgeSchema(**data)))
 
 
 @app.get('/', summary='Главная ручка', tags=['основные ручки'])
